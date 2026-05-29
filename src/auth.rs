@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 use anyhow::Result;
 use colored::Colorize;
 use serde::Deserialize;
@@ -11,21 +9,22 @@ struct DeviceCodeResponse {
     device_code: String,
     user_code: String,
     verification_uri: String,
-    expires_in: u64,
+    // expires_in: u64,
     interval: u64,
 }
 
 #[derive(Deserialize, Debug)]
 struct PollResponse {
     access_token: Option<String>,
-    token_type: Option<String>,
-    scope: Option<String>,
-    error: Option<String>,
-    error_description: Option<String>,
+    // could get the type of error here
+    // token_type: Option<String>,
+    // scope: Option<String>,
+    // error: Option<String>,
+    // error_description: Option<String>,
 }
 
 /// Device flow
-/// Allows you to authorize uers for a headless application such as a CLI tool
+/// Allows you to authorize users for a headless application such as a CLI tool
 /// https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/authorizing-oauth-apps
 fn device_flow_authentication() -> Result<String> {
     let client = reqwest::blocking::Client::new();
@@ -39,7 +38,6 @@ fn device_flow_authentication() -> Result<String> {
         .send()?;
 
     let data = resp.json::<DeviceCodeResponse>()?;
-    println!("{:#?}", data);
 
     // Step 2: Prompt the user to enter the user code in a browser
     println!(
@@ -49,8 +47,18 @@ fn device_flow_authentication() -> Result<String> {
     opener::open(data.verification_uri)?;
 
     // Step 3: App polls GitHub to check if the user authorized the device
+    // This is not complete or correct error handling
+    let mut attempts = 0;
+    let max_attempts = 120;
     let token = loop {
         thread::sleep(Duration::from_secs(data.interval));
+        attempts += 1;
+
+        if attempts > max_attempts {
+            return Err(anyhow::anyhow!(
+                "Authentication timed out. Please try again."
+            ));
+        }
 
         let poll_resp = client
             .post("https://github.com/login/oauth/access_token")
@@ -67,9 +75,10 @@ fn device_flow_authentication() -> Result<String> {
 
         if let Some(token) = poll_data.access_token {
             break token;
-        } else {
-            println!("{}", poll_data.error.unwrap())
         }
+        // else {
+        //     println!("{}", poll_data.error.unwrap())
+        // }
     };
 
     // Now the app has an access token that can be used to make requests to the github API on behalf of user
@@ -80,16 +89,14 @@ fn device_flow_authentication() -> Result<String> {
 pub fn get_access_token() -> Result<String> {
     let path = dirs::config_dir().unwrap().join("motoro.txt");
 
-    match fs::read_to_string(path) {
+    match fs::read_to_string(&path) {
         Ok(token) => {
-            println!("Using saved token!: {}", token);
+            // println!("Using saved token!: {}", token);
             Ok(token)
         }
         Err(_) => {
             let token = device_flow_authentication()?;
-
-            let path = dirs::config_dir().unwrap().join("motoro.txt");
-            let mut handle = fs::File::create(path)?;
+            let mut handle = fs::File::create(&path)?;
             write!(&mut handle, "{}", token)?;
 
             Ok(token)

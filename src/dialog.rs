@@ -1,42 +1,50 @@
+use anyhow::Result;
 use dialoguer::{Select, theme::ColorfulTheme};
 
-pub fn example() {
+pub fn home_dialoguer() -> Result<()> {
     let selections = &[
-        "Ice Cream",
-        "Vanilla Cupcake",
-        "Chocolate Muffin",
-        "A Pile of sweet, sweet mustard",
+        "View the task board",
+        "Useful links from telegram",
+        "Something else...",
     ];
 
     let selection = Select::with_theme(&ColorfulTheme::default())
         .with_prompt("Make a selection")
-        .default(0)
+        // .default(0)
         .items(&selections[..])
         .interact()
         .unwrap();
 
-    println!("Enjoy your {}!", selections[selection]);
+    // println!("Enjoy your {}!", selections[selection]);
 
-    let selection = Select::with_theme(&ColorfulTheme::default())
-        .with_prompt("Optionally pick your flavor")
-        .default(0)
-        .items(&selections[..])
-        .interact_opt()
-        .unwrap();
-
-    if let Some(selection) = selection {
-        println!("Enjoy your {}!", selections[selection]);
-    } else {
-        println!("You didn't select anything!");
+    match selection {
+        0 => crate::view_gh::view_tasks()?,
+        1 => crate::resources::fetch_links()?,
+        2 => println!("idk!!"),
+        _ => {}
     }
 
-    let selection = Select::with_theme(&ColorfulTheme::default())
-        .with_prompt("Pick your flavor, hint it might be on the second page")
-        .default(0)
-        .max_length(2)
-        .items(&selections[..])
-        .interact()
-        .unwrap();
-
-    println!("Enjoy your {}!", selections[selection]);
+    Ok(())
 }
+// let selection = Select::with_theme(&ColorfulTheme::default())
+//     .with_prompt("Optionally pick your flavor")
+//     .default(0)
+//     .items(&selections[..])
+//     .interact_opt()
+//     .unwrap();
+
+// if let Some(selection) = selection {
+//     println!("Enjoy your {}!", selections[selection]);
+// } else {
+//     println!("You didn't select anything!");
+// }
+
+// let selection = Select::with_theme(&ColorfulTheme::default())
+//     .with_prompt("Pick your flavor, hint it might be on the second page")
+//     .default(0)
+//     .max_length(2)
+//     .items(&selections[..])
+//     .interact()
+//     .unwrap();
+
+// println!("Enjoy your {}!", selections[selection]);

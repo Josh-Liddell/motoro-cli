@@ -1,0 +1,11 @@
+query($owner: String!) {
+    user(login: $owner) {
+        projectsV2(first: 10) {
+            nodes {
+                id
+                title
+                shortDescription
+            }
+        }
+    }
+}

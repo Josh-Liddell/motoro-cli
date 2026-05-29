@@ -1,4 +1,4 @@
-use crate::{tasks::view, utils};
+use anyhow::Result;
 use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
@@ -6,9 +6,7 @@ use clap::{Parser, Subcommand};
 #[command(propagate_version = true)]
 struct Args {
     // #[arg(short, long)]
-    // status: bool,
-    // #[arg(long)]
-    // one: String,
+    // example: bool,
     #[command(subcommand)]
     command: Commands,
 }
@@ -19,24 +17,19 @@ enum Commands {
     Logo,
     /// View the project task board on github
     Tasks,
-    /// Print out the links to learning resources
+    /// Print out the links to learning resources (from telegram)
     Resources,
-    // Adds files to myapp, ignore
-    // Add { name: Option<String> },
-    // ignore
-    // Run,
+    // Test,
 }
 
-pub fn run() {
+pub fn run() -> Result<()> {
     let args = Args::parse();
-
     match &args.command {
-        // Commands::Add { name } => {
-        //     println!("'add' was used, name is: {name:?}");
-        // }
-        // Commands::Run => println!("running"),
-        Commands::Logo => utils::print_logo(),
-        Commands::Resources => {}
-        Commands::Tasks => view::view_tasks().unwrap(),
+        Commands::Logo => crate::utils::print_logo(),
+        Commands::Tasks => crate::view_gh::view_tasks()?,
+        Commands::Resources => crate::resources::fetch_links()?,
+        // Commands::Test => view_gh::view_projects()?,
     }
+
+    Ok(())
 }

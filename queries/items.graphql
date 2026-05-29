@@ -1,0 +1,23 @@
+query($id: ID!) {
+    node(id: $id) {
+        ... on ProjectV2 {
+            items(first: 20) {
+                nodes {
+                    id
+                    # 1. This gets the text displayed on the card, even if it's a closed repo issue
+                    fieldValueByName(name: "Title") {
+                        ... on ProjectV2ItemFieldTextValue {
+                            text
+                        }
+                    }
+                    # 2. This gets the Kanban column name (e.g., "In Progress", "Done")
+                    status: fieldValueByName(name: "Status") {
+                        ... on ProjectV2ItemFieldSingleSelectValue {
+                            name
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
