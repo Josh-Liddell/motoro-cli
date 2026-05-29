@@ -1,3 +1,4 @@
+use crate::{tasks::view, utils};
 use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
@@ -14,26 +15,28 @@ struct Args {
 
 #[derive(Subcommand)]
 enum Commands {
-    /// Adds files to myapp
-    Add {
-        name: Option<String>,
-    },
-    /// Hello from the tools
-    Print,
-    Run,
+    /// Print the logo for fun
+    Logo,
+    /// View the project task board on github
+    Tasks,
+    /// Print out the links to learning resources
+    Resources,
+    // Adds files to myapp, ignore
+    // Add { name: Option<String> },
+    // ignore
+    // Run,
 }
 
 pub fn run() {
     let args = Args::parse();
 
     match &args.command {
-        Commands::Add { name } => {
-            println!("'add' was used, name is: {name:?}");
-        }
-        Commands::Print => crate::utils::print_logo(),
-        Commands::Run => {
-            let _x = 56;
-            println!("running")
-        }
+        // Commands::Add { name } => {
+        //     println!("'add' was used, name is: {name:?}");
+        // }
+        // Commands::Run => println!("running"),
+        Commands::Logo => utils::print_logo(),
+        Commands::Resources => {}
+        Commands::Tasks => view::view_tasks().unwrap(),
     }
 }

@@ -1,5 +1,6 @@
 mod cli;
 mod dialog;
+mod tasks;
 mod utils;
 
 use std::env;
@@ -12,3 +13,5 @@ fn main() {
         cli::run();
     }
 }
+
+// figure out error handling *sigh*
