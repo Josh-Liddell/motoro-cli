@@ -29,3 +29,9 @@ You may need to periodically update this, to do so run this command
 ```bash
 cargo install --git "https://github.com/Josh-Liddell/motoro-cli.git" --force
 ```
+
+## Uninstall
+
+```bash
+cargo uninstall motoro-cli
+```

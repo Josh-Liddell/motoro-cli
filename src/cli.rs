@@ -1,3 +1,4 @@
+use crate::{resources, utils, view_gh};
 use anyhow::Result;
 use clap::{Parser, Subcommand};
 
@@ -25,9 +26,9 @@ enum Commands {
 pub fn run() -> Result<()> {
     let args = Args::parse();
     match &args.command {
-        Commands::Logo => crate::utils::print_logo(),
-        Commands::Tasks => crate::view_gh::view_tasks()?,
-        Commands::Resources => crate::resources::fetch_links()?,
+        Commands::Logo => utils::print_logo(),
+        Commands::Tasks => view_gh::view_tasks()?,
+        Commands::Resources => resources::fetch_links()?,
         // Commands::Test => view_gh::view_projects()?,
     }
 

@@ -2,6 +2,7 @@ use anyhow::Result;
 use colored::Colorize;
 use reqwest::blocking;
 
+/// Prints out text from a google doc
 pub fn fetch_links() -> Result<()> {
     let doc_id = "1wKpnGjoNIqRh2UWR8bdTrWC1JEffrh4bRURK_0k8GIk";
     let url = format!(
@@ -20,9 +21,8 @@ pub fn fetch_links() -> Result<()> {
                 .bold()
         );
         println!("{}", content);
+        Ok(())
     } else {
-        eprintln!("There was an error fetching the document");
+        Err(anyhow::anyhow!("There was an error fetching the document"))
     }
-
-    Ok(())
 }

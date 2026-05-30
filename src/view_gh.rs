@@ -1,5 +1,7 @@
+use crate::auth;
 use anyhow::Result;
 use colored::Colorize;
+use reqwest::blocking;
 use serde::Deserialize;
 use serde_json::json;
 use std::fmt;
@@ -37,19 +39,18 @@ impl fmt::Display for Task {
 /// Query github for project board information using auth token
 /// https://docs.github.com/en/graphql/guides/forming-calls-with-graphql
 pub fn view_tasks() -> Result<()> {
-    // make api requests using the token
-    let client = reqwest::blocking::Client::new();
-    let token = crate::auth::get_access_token()?;
-    // let project_id = "PVT_kwHOAJcjzs4BMQw-";
-    let project_id = "PVT_kwHOAJcjzs4BXDCe";
+    // make api request on behalf of user using the access token
+    let client = blocking::Client::new();
+    let token = auth::get_access_token()?;
+    let motoro_project_id = "PVT_kwHOAJcjzs4BXDCe";
+
     let query = json!({
         "query": ITEM_QUERY,
         "variables": {
-            "id": project_id
+            "id": motoro_project_id
         }
     });
 
-    // send query
     let resp = client
         .post(BASE_URL)
         .bearer_auth(&token)
@@ -68,16 +69,24 @@ pub fn view_tasks() -> Result<()> {
     let tasks_list: Vec<Task> = serde_json::from_value(json_cleaned.clone())?;
 
     // print the tasks
-    for (heading, icon) in [("Todo", "○"), ("In Progress", "►"), ("Done", "✓")] {
+    for (heading, icon) in [
+        ("Todo", '○'),
+        ("In Progress", '►'),
+        ("Blocked", '■'),
+        ("Done", '✓'),
+    ] {
         println!("{}", heading.green().bold());
         tasks_list
             .iter()
             .filter(|t| t.status.name == heading)
             .for_each(|t| println!(" {icon} {t}"));
     }
+    // fix to not show header if no tasks
 
     Ok(())
 }
+
+// let project_id = "PVT_kwHOAJcjzs4BMQw-";
 
 // pub fn view_projects() -> Result<()> {
 //     // make api requests using the token

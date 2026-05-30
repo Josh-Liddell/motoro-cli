@@ -3,7 +3,6 @@ use colored::Colorize;
 use serde::Deserialize;
 use std::{fs, io::Write, thread, time::Duration};
 
-// maybe handle the expiry possibility???
 #[derive(Deserialize, Debug)]
 struct DeviceCodeResponse {
     device_code: String,
@@ -41,13 +40,14 @@ fn device_flow_authentication() -> Result<String> {
 
     // Step 2: Prompt the user to enter the user code in a browser
     println!(
-        "Paste this code into the browser window: {}",
+        "Paste this code into the github window: {}",
         data.user_code.magenta().bold()
     );
+    thread::sleep(Duration::from_secs(1));
     opener::open(data.verification_uri)?;
 
     // Step 3: App polls GitHub to check if the user authorized the device
-    // This is not complete or correct error handling
+    // This is not complete or correct error handling but it is something
     let mut attempts = 0;
     let max_attempts = 120;
     let token = loop {
