@@ -1,4 +1,9 @@
-use crate::{resources, utils, view_gh};
+use crate::{
+    dialog::home_dialoguer,
+    resources,
+    utils::{self, print_logo},
+    view_gh,
+};
 use anyhow::Result;
 use clap::{Parser, Subcommand};
 
@@ -9,27 +14,31 @@ struct Args {
     // #[arg(short, long)]
     // example: bool,
     #[command(subcommand)]
-    command: Commands,
+    command: Option<Commands>,
 }
 
 #[derive(Subcommand)]
 enum Commands {
-    /// Print the logo for fun
-    Logo,
     /// View the project task board on github
     Tasks,
     /// Print out the links to learning resources (from telegram)
     Resources,
-    // Test,
+    /// Starts julia repl in motoro project
+    Julia,
 }
 
 pub fn run() -> Result<()> {
     let args = Args::parse();
     match &args.command {
-        Commands::Logo => utils::print_logo(),
-        Commands::Tasks => view_gh::view_tasks()?,
-        Commands::Resources => resources::fetch_links()?,
-        // Commands::Test => view_gh::view_projects()?,
+        Some(Commands::Tasks) => view_gh::view_tasks()?,
+        Some(Commands::Resources) => resources::fetch_links()?,
+        Some(Commands::Julia) => utils::start_julia_repl()?,
+        None => {
+            // start julia runtime on another thread? idk
+            // IF we want rust to be able to execute julia stuff
+            print_logo();
+            home_dialoguer()?;
+        }
     }
 
     Ok(())

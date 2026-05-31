@@ -38,24 +38,22 @@ impl fmt::Display for Task {
 
 /// Query github for project board information using auth token
 /// https://docs.github.com/en/graphql/guides/forming-calls-with-graphql
-pub fn view_tasks() -> Result<()> {
+fn get_tasks() -> Result<Vec<Task>> {
     // make api request on behalf of user using the access token
     let client = blocking::Client::new();
     let token = auth::get_access_token()?;
     let motoro_project_id = "PVT_kwHOAJcjzs4BXDCe";
 
-    let query = json!({
-        "query": ITEM_QUERY,
-        "variables": {
-            "id": motoro_project_id
-        }
-    });
-
     let resp = client
         .post(BASE_URL)
         .bearer_auth(&token)
         .header("User-Agent", "motoro")
-        .json(&query)
+        .json(&json!({
+            "query": ITEM_QUERY,
+            "variables": {
+                "id": motoro_project_id
+            }
+        }))
         .send()?;
 
     // parse results
@@ -66,8 +64,13 @@ pub fn view_tasks() -> Result<()> {
         ));
     }
     let json_cleaned = json.pointer("/data/node/items/nodes").unwrap();
-    let tasks_list: Vec<Task> = serde_json::from_value(json_cleaned.clone())?;
+    let tasks = serde_json::from_value(json_cleaned.clone())?;
 
+    Ok(tasks)
+}
+
+pub fn view_tasks() -> Result<()> {
+    let tasks = get_tasks()?;
     // print the tasks
     for (heading, icon) in [
         ("Todo", '○'),
@@ -76,7 +79,7 @@ pub fn view_tasks() -> Result<()> {
         ("Done", '✓'),
     ] {
         println!("{}", heading.green().bold());
-        tasks_list
+        tasks
             .iter()
             .filter(|t| t.status.name == heading)
             .for_each(|t| println!(" {icon} {t}"));

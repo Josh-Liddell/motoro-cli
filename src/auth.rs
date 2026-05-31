@@ -1,32 +1,29 @@
 use anyhow::Result;
 use colored::Colorize;
+use reqwest::blocking::Client;
 use serde::Deserialize;
 use std::{fs, io::Write, thread, time::Duration};
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize)]
 struct DeviceCodeResponse {
     device_code: String,
     user_code: String,
     verification_uri: String,
-    // expires_in: u64,
     interval: u64,
+    // expires_in: u64,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize)]
 struct PollResponse {
     access_token: Option<String>,
     // could get the type of error here
-    // token_type: Option<String>,
-    // scope: Option<String>,
-    // error: Option<String>,
-    // error_description: Option<String>,
 }
 
 /// Device flow
 /// Allows you to authorize users for a headless application such as a CLI tool
 /// https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/authorizing-oauth-apps
 fn device_flow_authentication() -> Result<String> {
-    let client = reqwest::blocking::Client::new();
+    let client = Client::new();
 
     // Step 1: App requests the device and user verification codes from Github
     let resp = client
@@ -76,9 +73,6 @@ fn device_flow_authentication() -> Result<String> {
         if let Some(token) = poll_data.access_token {
             break token;
         }
-        // else {
-        //     println!("{}", poll_data.error.unwrap())
-        // }
     };
 
     // Now the app has an access token that can be used to make requests to the github API on behalf of user

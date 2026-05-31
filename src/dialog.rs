@@ -1,4 +1,4 @@
-use crate::{resources, view_gh};
+use crate::{resources, utils, view_gh};
 use anyhow::Result;
 use dialoguer::{Select, theme::ColorfulTheme};
 
@@ -6,10 +6,9 @@ pub fn home_dialoguer() -> Result<()> {
     let selections = &[
         "View the task board",
         "Useful links from telegram",
-        "Something else...",
-        "Something else...",
-        "Something else...",
-        "Something else...",
+        "Work in julia on motoro", // starts the julia repl in the project.
+        "Execute julia code via here",
+        "quit",
     ];
 
     let selection = Select::with_theme(&ColorfulTheme::default())
@@ -22,6 +21,9 @@ pub fn home_dialoguer() -> Result<()> {
     match selection {
         0 => view_gh::view_tasks()?,
         1 => resources::fetch_links()?,
+        2 => utils::start_julia_repl()?,
+        3 => println!("Depends on what you want it to do!"),
+        4 => std::process::exit(0),
         _ => println!("idk!!"),
     }
 
