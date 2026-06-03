@@ -1,12 +1,12 @@
-mod auth;
 mod cli;
 mod dialog;
-mod resources;
+mod github;
 mod utils;
-mod view_gh;
+
+use cli::Cli;
 
 fn main() {
-    if let Err(e) = cli::run() {
+    if let Err(e) = Cli::run() {
         eprintln!("Motoro error: {e}");
         std::process::exit(1);
     }

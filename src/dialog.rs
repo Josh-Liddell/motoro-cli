@@ -1,4 +1,7 @@
-use crate::{resources, utils, view_gh};
+use crate::{
+    github::{self, MotoroTasks},
+    utils::{self, GoogleDoc},
+};
 use anyhow::Result;
 use dialoguer::{Select, theme::ColorfulTheme};
 
@@ -19,8 +22,15 @@ pub fn home_dialoguer() -> Result<()> {
         .unwrap();
 
     match selection {
-        0 => view_gh::view_tasks()?,
-        1 => resources::fetch_links()?,
+        0 => {
+            let token = github::get_access_token()?;
+            let tasks = MotoroTasks::fetch(&token)?;
+            tasks.view();
+        }
+        1 => {
+            let doc = GoogleDoc::fetch_txt("1wKpnGjoNIqRh2UWR8bdTrWC1JEffrh4bRURK_0k8GIk")?;
+            doc.render_terminal_links();
+        }
         2 => utils::start_julia_repl()?,
         3 => println!("Depends on what you want it to do!"),
         4 => std::process::exit(0),

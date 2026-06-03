@@ -69,7 +69,6 @@ fn device_flow_authentication() -> Result<String> {
             .send()?;
 
         let poll_data = poll_resp.json::<PollResponse>()?;
-
         if let Some(token) = poll_data.access_token {
             break token;
         }
