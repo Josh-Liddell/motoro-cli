@@ -1,7 +1,7 @@
 query($id: ID!) {
     node(id: $id) {
         ... on ProjectV2 {
-            items(first: 20) {
+            items {
                 nodes {
                     id
                     # 1. This gets the text displayed on the card, even if it's a closed repo issue
