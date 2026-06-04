@@ -5,7 +5,9 @@ A command-line interface for interacting with [this](https://github.com/broughtj
 
 ## Installation
 
-If you have Rust run this command to install
+Ensure that [Rust](https://rust-lang.org/) and [Julia](https://julialang.org/) are installed.
+
+Then run this command to install:
 ```bash
 cargo install --git "https://github.com/Josh-Liddell/motoro-cli.git"
 ```
@@ -24,7 +26,7 @@ motoro --help
 
 ## Update
 
-You may need to periodically update this, to do so run this command
+You may need to periodically update this, to do so run this command:
 
 ```bash
 cargo install --git "https://github.com/Josh-Liddell/motoro-cli.git" --force
