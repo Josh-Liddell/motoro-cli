@@ -1,11 +1,14 @@
-use crate::{
-    dialog,
-    github::{self, MotoroTasks},
-    utils::{self, GoogleDoc},
-};
+mod dialog;
+mod github;
+mod usaspending;
+mod utils;
+
 use anyhow::Result;
 use clap::{Parser, Subcommand, ValueEnum};
+use github::MotoroTasks;
 use std::process::Command;
+use usaspending::AgencyResponse;
+use utils::GoogleDoc;
 
 #[derive(Parser)]
 #[command(version, about, long_about = None)] // Read from `Cargo.toml`
@@ -37,6 +40,8 @@ enum Commands {
     /// Print the motoro logo
     #[default]
     Logo,
+    /// Print out agencies with relevant URLs as provided by usaspending.gov
+    Agencies,
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum, Debug)]
@@ -51,6 +56,10 @@ impl Cli {
         let args = Self::parse();
 
         match args.command.unwrap_or_default() {
+            Commands::Agencies => {
+                let agencies = AgencyResponse::fetch()?;
+                agencies.pretty_print();
+            }
             Commands::Tasks => {
                 let token = github::get_access_token()?;
                 let tasks = MotoroTasks::fetch(&token)?;
