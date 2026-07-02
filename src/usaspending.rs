@@ -1,46 +1,88 @@
-use colored::Colorize;
-use reqwest::blocking;
-use serde::Deserialize;
-use std::io;
-use std::io::Write;
-use terminal_link::Link;
+// mod agency;
 
+use anyhow::{Result, anyhow};
+use reqwest::blocking;
+use serde::{Deserialize, Serialize};
+use serde_json::json;
+
+// this should just be used for making get and post requests to the api
+// methods that return data from the api
+pub struct USAspendingClient {
+    http_client: blocking::Client,
+    base_url: String,
+}
+
+impl USAspendingClient {
+    pub fn new() -> Self {
+        Self {
+            http_client: blocking::Client::new(),
+            base_url: "https://api.usaspending.gov".to_string(),
+        }
+    }
+
+    // a generic function that something that has this trait or something
+
+    pub fn geo_spending(&self) -> Result<Vec<StateInfo>> {
+        let url = format!("{}/api/v2/search/spending_by_geography/", self.base_url);
+        let filters = json!({
+            "filters": {
+                "keywords": ["transport"]
+            },
+            "scope": "place_of_performance",
+            "geo_layer": "state"
+        });
+
+        let resp = self.http_client.post(&url).json(&filters).send()?;
+
+        if resp.status().is_success() {
+            Ok(resp.json::<GeoSpendResponse>()?.results)
+        } else {
+            // println!("{}", resp.text()?);
+            Err(anyhow!("There was an issue sending the request"))
+        }
+
+        // Ok(resp.results)
+    }
+
+    pub fn agencies(&self) -> Result<Vec<Agency>> {
+        let url = format!("{}/api/v2/references/toptier_agencies/", self.base_url);
+        let resp = self
+            .http_client
+            .get(&url)
+            .send()?
+            .json::<AgencyResponse>()?;
+
+        Ok(resp.results)
+    }
+}
+
+// TYPES
+
+// Agencies
 #[derive(Deserialize, Debug)]
-pub struct AgencyResponse {
+struct AgencyResponse {
     results: Vec<Agency>,
 }
 
 #[derive(Deserialize, Debug)]
-struct Agency {
-    agency_id: u64,
-    toptier_code: String,
-    agency_name: String,
-    congressional_justification_url: Option<String>,
+pub struct Agency {
+    pub agency_id: u64,
+    pub toptier_code: String,
+    pub agency_name: String,
+    pub congressional_justification_url: Option<String>,
 }
 
-const BASE_URL: &str = "https://api.usaspending.gov";
+// Geo Spending
+#[derive(Deserialize)]
+struct GeoSpendResponse {
+    results: Vec<StateInfo>,
+}
 
-impl AgencyResponse {
-    pub fn fetch() -> Result<Self, reqwest::Error> {
-        blocking::get(format!("{}/api/v2/references/toptier_agencies/", BASE_URL))?.json()
-    }
-
-    pub fn pretty_print(&self) {
-        let mut stdout = io::stdout().lock();
-        for agency in &self.results {
-            let display_name = match &agency.congressional_justification_url {
-                Some(url) => Link::new(&agency.agency_name, url).to_string(),
-                None => agency.agency_name.clone(),
-            };
-
-            writeln!(
-                stdout,
-                "{} (id: {}, toptier_code: {})",
-                display_name.magenta().bold(),
-                agency.agency_id,
-                agency.toptier_code
-            )
-            .expect("Failed to write line");
-        }
-    }
+#[derive(Deserialize, Serialize)]
+pub struct StateInfo {
+    pub shape_code: String,
+    pub display_name: Option<String>,
+    pub aggregated_amount: f64,
+    pub population: Option<i32>,
+    pub per_capita: Option<f64>,
 }

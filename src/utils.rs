@@ -4,7 +4,25 @@ use anyhow::Result;
 use colored::Colorize;
 use dirs;
 use reqwest::blocking;
+use serde::Serialize;
+use std::path::Path;
 use std::{env, path::PathBuf, process::Command, thread, time::Duration};
+
+pub fn to_csv<T, P>(collection: &[T], path: P) -> Result<()>
+where
+    T: Serialize,
+    P: AsRef<Path>,
+{
+    let mut wtr = csv::Writer::from_path(path)?;
+
+    for record in collection {
+        wtr.serialize(record)?;
+    }
+
+    wtr.flush()?;
+
+    Ok(())
+}
 
 pub struct GoogleDoc {
     pub id: String,
@@ -71,40 +89,4 @@ pub fn start_julia_repl() -> Result<()> {
         .status()?;
 
     Ok(())
-}
-
-/// Prints the motoro logo
-pub fn print_logo() {
-    let greens = [
-        (140, 255, 160),
-        (110, 245, 170),
-        (85, 230, 185),
-        (60, 210, 200),
-        (45, 185, 210),
-        (35, 160, 220),
-        (25, 130, 230),
-        (20, 100, 240),
-    ];
-
-    let logo = r"
-$$\      $$\            $$\
-$$$\    $$$ |           $$ |
-$$$$\  $$$$ | $$$$$$\ $$$$$$\    $$$$$$\   $$$$$$\   $$$$$$\
-$$\$$\$$ $$ |$$  __$$\\_$$  _|  $$  __$$\ $$  __$$\ $$  __$$\
-$$ \$$$  $$ |$$ /  $$ | $$ |    $$ /  $$ |$$ |  \__|$$ /  $$ |
-$$ |\$  /$$ |$$ |  $$ | $$ |$$\ $$ |  $$ |$$ |      $$ |  $$ |
-$$ | \_/ $$ |\$$$$$$  | \$$$$  |\$$$$$$  |$$ |      \$$$$$$  |
-\__|     \__| \______/   \____/  \______/ \__|       \______/";
-
-    let subtitle = "Computational Options Pricing";
-
-    for (line, color) in logo.lines().skip(1).zip(greens) {
-        println!("{}", line.custom_color(color).bold());
-        thread::sleep(Duration::from_secs_f32(0.25));
-    }
-
-    let width = logo.lines().map(|l| l.len()).max().unwrap();
-    println!("\n{:^1$}\n\n", subtitle, width);
-
-    thread::sleep(Duration::from_secs_f32(0.5));
 }
